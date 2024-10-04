@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação de Chance de Ganho - Gráfico de Colunas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f4f4f9;
+            font-family: Arial, sans-serif;
+            text-align: center; /* Centraliza o texto */
+        }
+        #chartContainer {
+            width: 900px;
+            height: 500px;
+            margin: auto;
+        }
+        #jogadoresOnline {
+            font-size: 24px; /* Aumenta o tamanho da fonte */
+            margin: 20px 0; /* Espaçamento entre os elementos */
+        }
+    </style>
+</head>
+<body>
+    <div id="jogadoresOnline">Jogadores Operando: 0</div> <!-- Exibição de jogadores operando -->
+    <div id="chartContainer">
+        <canvas id="ganhoChart"></canvas>
+    </div>
+
+    <script>
+        // Configuração inicial dos dados
+        const ctx = document.getElementById('ganhoChart').getContext('2d');
+        const chanceDeGanho = [];
+        const horarioDeAnalise = [];
+
+        // Função para adicionar novo ponto de dados
+        function adicionarDados(chart, label, data) {
+            chart.data.labels.push(label);
+            chart.data.datasets[0].data.push(data);
+            chart.update();
+            atualizarTitulo(chart, data); // Atualiza o título com a nova porcentagem
+        }
+
+        // Função para atualizar o título do gráfico
+        function atualizarTitulo(chart, porcentagem) {
+            chart.options.plugins.title.text = `Porcentagem de Ganho: ${porcentagem}%`; // Atualiza o texto do título
+            chart.update(); // Redesenha o gráfico com o novo título
+        }
+
+        // Criar o gráfico de colunas
+        const chart = new Chart(ctx, {
+            type: 'bar', // Tipo do gráfico: coluna
+            data: {
+                labels: horarioDeAnalise, // Horários
+                datasets: [{
+                    label: 'Porcentagem de Ganho (%)',
+                    data: chanceDeGanho, // Chance de ganho ao longo do tempo
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)', // Cor das colunas
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Porcentagem de Ganho (%)' // Título inicial
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Horário (segundos)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Porcentagem de Ganho (%)'
+                        },
+                        min: 0,
+                        max: 100 // Definindo o limite para porcentagem de 0 a 100
+                    }
+                }
+            }
+        });
+
+        // Função para simular dados de porcentagem de ganho
+        function gerarChanceDeGanho() {
+            return (Math.random() * (98.73 - 40) + 40).toFixed(2); // Chance de 40% a 98.73%
+        }
+
+        // Função para gerar um número aleatório de jogadores operando
+        function gerarJogadoresOperando(atual) {
+            let mudanca = Math.random();
+            if (mudanca < 0.5) {
+                // Alteração nas casas decimais
+                return Math.max(0, (atual + (Math.random() < 0.5 ? -0.1 : 0.1)).toFixed(2));
+            } else {
+                // Alteração nas casas de dezena
+                return Math.floor(Math.random() * (9000 - 3867 + 1)) + 3867;
+            }
+        }
+
+        let jogadoresOperando = 6632; // Inicialização do número de jogadores operando
+        document.getElementById('jogadoresOnline').innerText = `Jogadores Operando: ${jogadoresOperando}`; // Exibe o número de jogadores operando
+
+        // Atualizar o número de jogadores operando a cada 5 segundos
+        setInterval(() => {
+            jogadoresOperando = gerarJogadoresOperando(jogadoresOperando); // Atualiza o número de jogadores operando
+            document.getElementById('jogadoresOnline').innerText = `Jogadores Operando: ${jogadoresOperando}`; // Exibe o novo número
+        }, 6693); // Atualiza a cada 5 segundos
+
+        // Atualizar os dados do gráfico a cada 3 segundos
+        let tempo = 0;
+        setInterval(() => {
+            const novaChance = gerarChanceDeGanho();
+            adicionarDados(chart, tempo + 's', novaChance); // Adiciona novo ponto de dado
+
+            if (chart.data.labels.length > 20) { // Mantém no máximo 20 pontos visíveis
+                chart.data.labels.shift(); // Remove o primeiro label
+                chart.data.datasets[0].data.shift(); // Remove o primeiro dado
+                chart.update();
+            }
+            tempo += 3; // Incrementa o tempo a cada 3 segundos
+        }, 5000);
+    </script>
+</body>
+</html>
